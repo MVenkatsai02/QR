@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="qr-container">
+  {% if qr_file %}
+    <p>Today's QR Code (scan to check-in/out):</p>
+    <img src="/{{ qr_file }}" width="200">
+  {% else %}
+    <p>No QR generated for today yet.</p>
+  {% endif %}
+</div>
+
+<h3>Employee Attendance Status (Today)</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Employee</th>
+      <th>Code</th>
+      <th>Check-In</th>
+      <th>Check-Out</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for emp in employees %}
+    <tr>
+      <td>{{ emp.name }}</td>
+      <td>{{ emp.emp_code }}</td>
+      <td>{{ status_map[emp.id]["in"] }}</td>
+      <td>{{ status_map[emp.id]["out"] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
