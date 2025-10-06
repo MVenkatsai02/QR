@@ -5,13 +5,11 @@ import os
 from datetime import datetime
 from PIL import Image
 from geopy.distance import geodesic
-from streamlit.components.v1 import html
-from urllib.parse import urlencode
+from streamlit_geolocation import streamlit_geolocation
 
 # ---------- CONFIG ----------
-OFFICE_LAT, OFFICE_LON = 17.4435, 78.3772  # Example: Hyderabad (adjust to your office)
+OFFICE_LAT, OFFICE_LON = 17.4435, 78.3772  # Example: Hyderabad
 MAX_DISTANCE_KM = 0.1  # 100 meters
-
 DB_FILE = "attendance.db"
 
 # ---------- DATABASE ----------
@@ -121,56 +119,27 @@ def get_today_attendance():
 
 # ---------- GEOLOCATION ----------
 def get_user_location():
-    """Uses browser's HTML5 Geolocation API via JavaScript."""
+    """Capture user's current location via streamlit-geolocation"""
     st.write("📍 Click the button below to share your current location.")
-    location_html = """
-    <script>
-    const streamlitDoc = window.parent.document;
-    const sendData = (lat, lon) => {
-        const input = streamlitDoc.querySelector('input[data-testid="location-input"]');
-        if (input) {
-            input.value = `${lat},${lon}`;
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    }
-
-    function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    sendData(pos.coords.latitude, pos.coords.longitude);
-                },
-                (err) => {
-                    alert("Location access denied or unavailable.");
-                });
-        } else {
-            alert("Geolocation is not supported by this browser.");
-        }
-    }
-    </script>
-    <button onclick="getLocation()">📍 Share Location</button>
-    """
-    html(location_html)
-    location_input = st.text_input("Your location will appear here:", key="location-input")
-    if location_input:
-        try:
-            lat, lon = map(float, location_input.split(","))
-            return lat, lon
-        except:
-            return None
-    return None
+    location = streamlit_geolocation()
+    if location and "latitude" in location and "longitude" in location:
+        st.success(f"✅ Location captured: ({location['latitude']:.5f}, {location['longitude']:.5f})")
+        return location["latitude"], location["longitude"]
+    else:
+        st.info("Please click the button above and allow permission.")
+        return None
 
 
 def within_office(lat, lon, radius_km=MAX_DISTANCE_KM):
     dist = geodesic((lat, lon), (OFFICE_LAT, OFFICE_LON)).km
     return dist <= radius_km, round(dist, 3)
 
+
 # ---------- STREAMLIT APP ----------
 st.set_page_config(page_title="QR Attendance System", page_icon="📌")
 st.title("📌 QR Attendance System with Location Validation")
 
 init_db()
-query_params = st.query_params
 
 # ----- SINGLE STATIC QR -----
 QR_FOLDER = "qrcodes"
@@ -178,7 +147,7 @@ os.makedirs(QR_FOLDER, exist_ok=True)
 qr_file_path = os.path.join(QR_FOLDER, "company_qr.png")
 
 if not os.path.exists(qr_file_path):
-    base_url = "https://qrforhr.streamlit.app/"  # replace with Streamlit Cloud URL after deploy
+    base_url = "https://qrforhr.streamlit.app/"  # Replace with your Streamlit app URL
     qr = qrcode.make(base_url)
     qr.save(qr_file_path)
 
