@@ -178,7 +178,7 @@ os.makedirs(QR_FOLDER, exist_ok=True)
 qr_file_path = os.path.join(QR_FOLDER, "company_qr.png")
 
 if not os.path.exists(qr_file_path):
-    base_url = "http://localhost:8501/"  # replace with Streamlit Cloud URL after deploy
+    base_url = "https://qrforhr.streamlit.app/"  # replace with Streamlit Cloud URL after deploy
     qr = qrcode.make(base_url)
     qr.save(qr_file_path)
 
