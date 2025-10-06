@@ -8,8 +8,8 @@ from geopy.distance import geodesic
 from streamlit_geolocation import streamlit_geolocation
 
 # ---------- CONFIG ----------
-OFFICE_LAT, OFFICE_LON = 17.4435, 78.3772  # Example: Hyderabad
-MAX_DISTANCE_KM = 0.1  # 100 meters
+OFFICE_LAT, OFFICE_LON = 17.4435, 78.3772      # Example: Hyderabad
+MAX_DISTANCE_KM = 5.0                          # 5 km for easier demo testing
 DB_FILE = "attendance.db"
 
 # ---------- DATABASE ----------
@@ -17,14 +17,12 @@ def init_db():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
-    # Employee master table
     c.execute('''CREATE TABLE IF NOT EXISTS employees
                  (emp_id TEXT PRIMARY KEY,
                   name TEXT,
                   department TEXT,
                   role TEXT)''')
 
-    # Attendance table
     c.execute('''CREATE TABLE IF NOT EXISTS attendance
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   emp_id TEXT,
@@ -35,7 +33,6 @@ def init_db():
                   hours_worked REAL,
                   FOREIGN KEY(emp_id) REFERENCES employees(emp_id))''')
 
-    # Insert fake employees if none exist
     c.execute("SELECT COUNT(*) FROM employees")
     if c.fetchone()[0] == 0:
         employees = [
@@ -117,16 +114,20 @@ def get_today_attendance():
     conn.close()
     return records
 
+
 # ---------- GEOLOCATION ----------
 def get_user_location():
-    """Capture user's current location via streamlit-geolocation"""
+    """Capture user's current location safely via streamlit-geolocation"""
     st.write("📍 Click the button below to share your current location.")
     location = streamlit_geolocation()
-    if location and "latitude" in location and "longitude" in location:
-        st.success(f"✅ Location captured: ({location['latitude']:.5f}, {location['longitude']:.5f})")
-        return location["latitude"], location["longitude"]
+
+    # Avoid KeyErrors when data is empty
+    if location and isinstance(location, dict) and "latitude" in location and "longitude" in location:
+        lat, lon = location["latitude"], location["longitude"]
+        st.success(f"✅ Location captured: ({lat:.5f}, {lon:.5f})")
+        return lat, lon
     else:
-        st.info("Please click the button above and allow permission.")
+        st.info("Please click the location button above and allow permission.")
         return None
 
 
@@ -147,7 +148,7 @@ os.makedirs(QR_FOLDER, exist_ok=True)
 qr_file_path = os.path.join(QR_FOLDER, "company_qr.png")
 
 if not os.path.exists(qr_file_path):
-    base_url = "https://qrforhr.streamlit.app/"  # Replace with your Streamlit app URL
+    base_url = "https://qrforhr.streamlit.app/"  # your Streamlit Cloud URL
     qr = qrcode.make(base_url)
     qr.save(qr_file_path)
 
