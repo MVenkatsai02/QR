@@ -8,8 +8,10 @@ from geopy.distance import geodesic
 from streamlit_geolocation import streamlit_geolocation
 
 # ---------- CONFIG ----------
-OFFICE_LAT, OFFICE_LON = 17.4435, 78.3772      # Example: Hyderabad
-MAX_DISTANCE_KM = 5.0                          # 5 km for easier demo testing
+
+OFFICE_LAT, OFFICE_LON = 17.443387, 78.348673
+# Example: Hyderabad
+MAX_DISTANCE_KM = 8.0                          # 5 km for easier demo testing
 DB_FILE = "attendance.db"
 
 # ---------- DATABASE ----------
