@@ -1,0 +1,5 @@
+attendance.db
+qrcodes/
+__pycache__/
+venv/
+venv
